@@ -1,0 +1,11 @@
+ironic:
+  name: "Ironic"
+  description: "Ironic Conductor"
+  has_primary: false                # whether has primary role or not
+  public_ip_required: false         # whether requires public net or not
+  weight: 100   
+  limits:
+    min: 1
+    recommended: 3
+  conflicts:
+    - compute
