@@ -1,0 +1,31 @@
+attributes:
+  metadata:
+    restrictions:
+      - "cluster:net_provider != 'neutron' or networking_parameters:segmentation_type != 'vlan'": "Ironic requires Neutron with VLAN segmentation."
+      - "settings:storage.images_ceph.value == true": "Ironic requires Swift as a backend for Glance image service."
+  password:
+    value: "I_love_plugins"
+    label: "Password for user, db and swift"
+    type: "text"
+    weight: 10
+    regex:
+      source: '^([a-zA-Z0-9_-]+)$'
+      error: "Password should match regex '^([a-zA-Z0-9_-]+)$'"
+  l3_allocation_pool:
+    value: "192.168.1.52:192.168.1.254"
+    label: "Allocation pool for Neutron network"
+    description: 'Semicolon separated IP addresses of start and end of pool'
+    type: "text"
+    weight: 20
+    regex:
+      source: '^(?:\d|1?\d\d|2[0-4]\d|25[0-5])(?:\.(?:\d|1?\d\d|2[0-4]\d|25[0-5])){3}(?::\s*(?:\d|1?\d\d|2[0-4]\d|25[0-5])(?:\.(?:\d|1?\d\d|2[0-4]\d|25[0-5])){3})*$'
+      error: "Invalid IP addresses pool"
+  l3_gateway:
+    value: "192.168.1.51"
+    label: "Gateway for Neutron network"
+    type: "text"
+    weight: 30
+    regex:
+      source: '^(?:\d|1?\d\d|2[0-4]\d|25[0-5])(?:\.(?:\d|1?\d\d|2[0-4]\d|25[0-5])){3}$'
+      error: "Invalid IP address of gateway"
+

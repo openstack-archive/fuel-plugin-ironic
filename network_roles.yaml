@@ -1,0 +1,24 @@
+- id: "ironic/api"
+  # Role mapping to network
+  default_mapping: "management"
+  properties:
+    # Should be true if network role requires subnet being set
+    subnet: true
+    # Should be true if network role requires gateway being set
+    gateway: true
+    vip: []
+
+- id: "ironic/baremetal"
+  # Role mapping to network
+  default_mapping: "baremetal"
+  properties:
+    # Should be true if network role requires subnet being set
+    subnet: true
+    # Should be true if network role requires gateway being set
+    gateway: true
+    vip:
+         # Unique VIP name
+       - name: "baremetal"
+         # Optional linux namespace for VIP
+         namespace: "haproxy"
+

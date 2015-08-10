@@ -1,0 +1,121 @@
+- id: ironic-copy-bootstrap-keys
+  type: copy_files
+  role: ['ironic']
+  required_for: [pre_deployment_end]
+  requires: [pre_deployment_start]
+  parameters:
+    permissions: '0600'
+    dir_permissions: '0700'
+    files:
+      - src: /var/lib/fuel/keys/ironic/bootstrap.rsa
+        dst: /var/lib/astute/ironic/bootstrap.rsa
+
+- id: ironic-haproxy
+  groups: ['primary-controller', 'controller']
+  type: puppet
+  required_for: [deploy_end, controller_remaining_tasks, ironic-api]
+  requires: [openstack-controller, ironic-network]
+  parameters:
+    puppet_manifest: puppet/manifests/haproxy.pp
+    puppet_modules: puppet/modules:/etc/puppet/modules
+    timeout: 3600
+
+- id: ironic-network
+  groups: ['primary-controller', 'controller']
+  type: puppet
+  required_for: [deploy_end, controller_remaining_tasks, ironic-api, ironic-haproxy]
+  requires: [openstack-controller]
+  parameters:
+    puppet_manifest: puppet/manifests/network.pp
+    puppet_modules: puppet/modules:/etc/puppet/modules
+    timeout: 3600
+
+- id: ironic-db
+  groups: ['primary-controller', 'controller']
+  type: puppet
+  required_for: [deploy_end, controller_remaining_tasks, ironic-api]
+  requires: [openstack-controller]
+  parameters:
+    puppet_manifest: puppet/manifests/db.pp
+    puppet_modules: puppet/modules:/etc/puppet/modules
+    timeout: 3600
+
+- id: ironic-upload-images
+  role: ['primary-controller']
+  type: shell
+  required_for: [post_deployment_end]
+  requires: [enable_quorum]
+  parameters:
+    cmd: ruby upload_images.rb
+    retries: 3
+    interval: 20
+    timeout: 180
+
+- id: ironic-swift-key
+  role: ['primary-controller']
+  type: shell
+  required_for: [post_deployment_end]
+  requires: [enable_quorum]
+  parameters:
+    cmd: ruby post_swift_key.rb
+    retries: 3
+    interval: 20
+    timeout: 180
+
+- id: ironic-api
+  groups: ['primary-controller', 'controller']
+  type: puppet
+  required_for: [deploy_end, controller_remaining_tasks]
+  requires: [openstack-controller, ironic-db, ironic-network, ironic-haproxy, swift]
+  parameters:
+    puppet_manifest: puppet/manifests/ironic.pp
+    puppet_modules: puppet/modules:/etc/puppet/modules
+    timeout: 3600
+
+- id: ironic-network-conductor
+  groups: ['ironic']
+  type: puppet
+  required_for: [deploy_end, ironic-conductor]
+  requires: [hosts, firewall]
+  parameters:
+    puppet_manifest: puppet/manifests/network-conductor.pp
+    puppet_modules: puppet/modules:/etc/puppet/modules
+    timeout: 3600
+
+- id: ironic-conductor
+  groups: ['ironic']
+  type: puppet
+  required_for: [deploy_end, ironic-compute]
+  requires: [hosts, firewall, ironic-network-conductor]
+  parameters:
+    puppet_manifest: puppet/manifests/ironic-conductor.pp
+    puppet_modules: puppet/modules:/etc/puppet/modules
+    timeout: 3600
+
+- id: ironic-compute
+  groups: ['ironic']
+  type: puppet
+  required_for: [deploy_end]
+  requires: [hosts, firewall, ironic-conductor]
+  parameters:
+    puppet_manifest: puppet/manifests/ironic-compute.pp
+    puppet_modules: puppet/modules:/etc/puppet/modules
+    timeout: 3600
+
+- id: ironic
+  type: group
+  role: [ironic]
+  tasks:
+    - fuel_pkgs
+    - hiera
+    - globals
+    - logging
+    - tools
+    - netconfig
+    - hosts
+    - firewall
+  required_for: [deploy_end]
+  requires: [deploy_start]
+  parameters:
+    strategy:
+      type: parallel
