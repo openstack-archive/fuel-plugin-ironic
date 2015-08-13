@@ -1,0 +1,3 @@
+.build
+repositories/ubuntu/*.deb
+fuel-plugin-ironic*.rpm
