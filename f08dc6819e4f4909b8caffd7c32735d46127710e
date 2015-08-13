@@ -1,0 +1,8 @@
+Verified+2: Jenkins
+Code-Review+2: Andrey Shestakov <ashestakov@mirantis.com>
+Workflow+1: Andrey Shestakov <ashestakov@mirantis.com>
+Submitted-by: Jenkins
+Submitted-at: Thu, 13 Aug 2015 23:29:10 +0000
+Reviewed-on: https://review.openstack.org/211113
+Project: stackforge/fuel-plugin-ironic
+Branch: refs/heads/master
