@@ -11,11 +11,10 @@ global_conf="/etc/fuel-bootstrap-image.conf"
 [ -z "$MOS_VERSION" ] && MOS_VERSION="7.0"
 [ -z "$DISTRO_RELEASE" ] && DISTRO_RELEASE="trusty"
 [ -z "$MIRROR_DISTRO" ] && MIRROR_DISTRO="http://archive.ubuntu.com/ubuntu"
-[ -z "$MIRROR_MOS" ] && MIRROR_MOS="http://mirror.fuel-infra.org/mos-repos/$MOS_VERSION/cluster/base/$DISTRO_RELEASE"
+[ -z "$MIRROR_MOS" ] && MIRROR_MOS="http://mirror.fuel-infra.org/mos-repos/ubuntu/$MOS_VERSION"
 [ -z "$KERNEL_FLAVOR" ] && KERNEL_FLAVOR="-generic-lts-trusty"
 [ -z "$ARCH" ] && ARCH="amd64"
 [ -z "$DESTDIR" ] && DESTDIR="/var/www/nailgun/bootstrap/ubuntu"
-[ -z "$BOOTSTRAP_SSH_KEYS" ] && BOOTSTRAP_SSH_KEYS="$datadir/ubuntu/files/root/.ssh/authorized_keys"
 
 BOOTSTRAP_FUEL_PKGS_DFLT="openssh-server ntp"
 
@@ -48,11 +47,13 @@ apt_setup ()
 	local root="$1"
 	local sources_list="${root}/etc/apt/sources.list"
 	local apt_prefs="${root}/etc/apt/preferences"
-	local mos_codename="mos${MOS_VERSION}-${DISTRO_RELEASE}"
-	local broken_repo=''
+	local mos_codename="mos${MOS_VERSION}"
 	local release_file="$MIRROR_MOS/dists/$mos_codename/Release"
 	if ! wget -q -O /dev/null "$release_file" 2>/dev/null; then
-		broken_repo='yes'
+		cat >&2 <<-EOF
+		$MYSELF: broken MOS repo: no $release_file"
+		EOF
+		exit 2
 	fi
 	mkdir -p "${sources_list%/*}"
 
@@ -60,20 +61,11 @@ apt_setup ()
 	deb $MIRROR_DISTRO ${DISTRO_RELEASE}         main universe multiverse restricted
 	deb $MIRROR_DISTRO ${DISTRO_RELEASE}-security main universe multiverse restricted
 	deb $MIRROR_DISTRO ${DISTRO_RELEASE}-updates  main universe multiverse restricted
+	deb $MIRROR_MOS ${mos_codename}          main
+	deb $MIRROR_MOS ${mos_codename}-security main
+	deb $MIRROR_MOS ${mos_codename}-updates  main
+	deb $MIRROR_MOS ${mos_codename}-holdback main
 	EOF
-	if [ -z "$broken_repo" ]; then
-		cat >> "$sources_list" <<-EOF
-		deb $MIRROR_MOS ${mos_codename}          main
-		deb $MIRROR_MOS ${mos_codename}-security main
-		deb $MIRROR_MOS ${mos_codename}-updates  main
-		deb $MIRROR_MOS ${mos_codename}-holdback main
-		EOF
-	else
-		# TODO(asheplyakov): remove this after perestroika repo gets fixed
-		cat >> "$sources_list" <<-EOF
-		deb $MIRROR_MOS ${DISTRO_RELEASE} main
-		EOF
-	fi
 	if [ -n "$EXTRA_DEB_REPOS" ]; then
 		l="$EXTRA_DEB_REPOS"
 		IFS='|'
@@ -312,20 +304,20 @@ cleanup_chroot ()
 
 install_agent ()
 {
-        local root="$1"
-        local package_path="$2"
-        local full_path=`ls $package_path/fuel-agent*.deb`
-        local package=`basename $full_path`
-        cp $full_path $root/tmp
-        chroot "$root" env \
-                LC_ALL=C \
-                DEBIAN_FRONTEND=noninteractive \
-                DEBCONF_NONINTERACTIVE_SEEN=true \
-                TMPDIR=/tmp \
-                TMP=/tmp \
-                gdebi -n /tmp/$package
+	local root="$1"
+	local package_path="$2"
+	local full_path=`ls $package_path/fuel-agent*.deb`
+	local package=`basename $full_path`
+	cp $full_path $root/tmp
+	chroot "$root" env \
+		LC_ALL=C \
+		DEBIAN_FRONTEND=noninteractive \
+		DEBCONF_NONINTERACTIVE_SEEN=true \
+		TMPDIR=/tmp \
+		TMP=/tmp \
+		gdebi -n /tmp/$package
 
-        rm -f $root/tmp/$package
+	rm -f $root/tmp/$package
 }
 
 recompress_initramfs ()
@@ -392,7 +384,14 @@ build_image ()
 	install_agent "$root" $AGENT_PACKAGE_PATH
 	recompress_initramfs "$root"
 	copy_conf_files "$root" $GONFIG_SOURCE
-	install_ssh_keys "$root" $BOOTSTRAP_SSH_KEYS
+	if [ -n "$BOOTSTRAP_SSH_KEYS" ]; then
+		install_ssh_keys "$root" $BOOTSTRAP_SSH_KEYS
+	else
+		cat >&2 <<-EOF
+		$MYSELF: Warning: no ssh keys specified
+		$MYSELF: bootstrap nodes won't be available via ssh
+		EOF
+	fi
 	restore_resolv_conf "$root"
 	cleanup_chroot "$root"
 	mk_squashfs_image "$root"
