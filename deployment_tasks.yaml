@@ -85,7 +85,7 @@
 - id: ironic-network-conductor
   groups: ['ironic']
   type: puppet
-  required_for: [deploy_end, ironic-conductor]
+  required_for: [ironic-conductor]
   requires: [hosts, firewall]
   parameters:
     puppet_manifest: puppet/manifests/network-conductor.pp
@@ -109,6 +109,16 @@
   requires: [hosts, firewall, ironic-conductor]
   parameters:
     puppet_manifest: puppet/manifests/ironic-compute.pp
+    puppet_modules: puppet/modules:/etc/puppet/modules
+    timeout: 3600
+
+- id: baremetal-firewall
+  role: '*'
+  type: puppet
+  required_for: [post_deployment_end]
+  requires: [post_deployment_start]
+  parameters:
+    puppet_manifest: puppet/manifests/baremetal-firewall.pp
     puppet_modules: puppet/modules:/etc/puppet/modules
     timeout: 3600
 
