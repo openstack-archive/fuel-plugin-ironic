@@ -1,5 +1,7 @@
 #!/bin/bash -ex
 
+exec > /tmp/fuel-plugin-ironic.log
+
 package_path=$(rpm -ql fuel-plugin-ironic-1.0 | head -n1)
 deployment_scripts_path="${package_path}/deployment_scripts"
 
