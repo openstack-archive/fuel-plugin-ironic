@@ -61,6 +61,16 @@
     interval: 20
     timeout: 180
 
+- id: ironic-conductor-config
+  role: ['ironic']
+  type: puppet
+  required_for: [post_deployment_end]
+  requires: [ironic-upload-images]
+  parameters:
+    puppet_manifest: puppet/manifests/ironic-conductor-config.pp
+    puppet_modules: puppet/modules:/etc/puppet/modules
+    timeout: 3600
+
 - id: ironic-swift-key
   role: ['primary-controller']
   type: shell

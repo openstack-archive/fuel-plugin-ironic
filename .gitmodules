@@ -1,6 +1,3 @@
 [submodule "deployment_scripts/puppet/modules/tftp"]
 	path = deployment_scripts/puppet/modules/tftp
 	url = https://github.com/puppetlabs/puppetlabs-tftp
-[submodule "deployment_scripts/puppet/modules/ironic"]
-	path = deployment_scripts/puppet/modules/ironic
-	url = https://github.com/openstack/puppet-ironic
