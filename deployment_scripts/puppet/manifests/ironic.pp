@@ -83,7 +83,6 @@ if $ironic_hash['metadata']['enabled'] {
 
   nova_config {
     'DEFAULT/scheduler_host_manager':          value => 'nova.scheduler.ironic_host_manager.IronicHostManager';
-    'DEFAULT/scheduler_use_baremetal_filters': value => true;
   }
 
   include ::nova::params
