@@ -3,7 +3,6 @@ notice('MODULAR: ironic/ironic-conductor-config.pp')
 $ironic_hash                = hiera_hash('fuel-plugin-ironic', {})
 $management_vip             = hiera('management_vip')
 $keystone_endpoint          = hiera('keystone_endpoint', $management_vip)
-$neutron_endpoint           = hiera('neutron_endpoint', $management_vip)
 
 $ironic_tenant              = pick($ironic_hash['tenant'],'services')
 $ironic_user                = pick($ironic_hash['user'],'ironic')
@@ -20,15 +19,6 @@ ironic_images_setter {'ironic_images':
   glance_url       => "http://${management_vip}:9292/v2.0/",
 }
 
-ironic_neutron_setter {'ironic_network':
-  ensure           => present,
-  auth_url         => "http://${keystone_endpoint}:5000/v2.0/",
-  auth_username    => $ironic_user,
-  auth_password    => $ironic_user_password,
-  auth_tenant_name => $ironic_tenant,
-  neutron_url      => "http://${neutron_endpoint}:9696/v2.0/",
-}
-
 service { 'ironic-conductor':
   ensure    => 'running',
   name      => $::ironic::params::conductor_service,
@@ -38,4 +28,3 @@ service { 'ironic-conductor':
 }
 
 Ironic_images_setter<||> ~> Service['ironic-conductor']
-Ironic_neutron_setter<||> ~> Service['ironic-conductor']

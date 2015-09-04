@@ -2,7 +2,7 @@ attributes:
   metadata:
     restrictions:
       - "cluster:net_provider != 'neutron' or networking_parameters:segmentation_type != 'vlan'": "Ironic requires Neutron with VLAN segmentation."
-      - "settings:storage.images_ceph.value == true": "Ironic requires Swift as a backend for Glance image service."
+      - "settings:storage.images_ceph.value == true": "Ironic requires Swift API for Glance image service."
   password:
     value: "I_love_plugins"
     label: "Password for user, db and swift"

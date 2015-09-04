@@ -40,6 +40,16 @@
     puppet_modules: puppet/modules:/etc/puppet/modules
     timeout: 3600
 
+- id: ironic-network-openstack
+  groups: ['primary-controller', 'controller']
+  type: puppet
+  required_for: [deploy_end]
+  requires: [openstack-network, ironic-network-ovs]
+  parameters:
+    puppet_manifest: puppet/manifests/network-openstack.pp
+    puppet_modules: puppet/modules:/etc/puppet/modules
+    timeout: 3600
+
 - id: ironic-db
   groups: ['primary-controller']
   type: puppet
@@ -53,8 +63,8 @@
 - id: ironic-upload-images
   role: ['primary-controller']
   type: shell
-  required_for: [post_deployment_end]
-  requires: [enable_quorum]
+  required_for: [ironic-conductor-config]
+  requires: [enable_quorum, enable_rados]
   parameters:
     cmd: ruby upload_images.rb
     retries: 3
@@ -75,7 +85,7 @@
   role: ['primary-controller']
   type: shell
   required_for: [post_deployment_end]
-  requires: [enable_quorum]
+  requires: [enable_quorum, enable_rados]
   parameters:
     cmd: ruby post_swift_key.rb
     retries: 3
@@ -86,7 +96,7 @@
   groups: ['primary-controller', 'controller']
   type: puppet
   required_for: [deploy_end, controller_remaining_tasks]
-  requires: [openstack-controller, ironic-db, ironic-network, ironic-haproxy, swift]
+  requires: [openstack-controller, ironic-db, ironic-network, ironic-haproxy]
   parameters:
     puppet_manifest: puppet/manifests/ironic.pp
     puppet_modules: puppet/modules:/etc/puppet/modules
