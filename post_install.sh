@@ -21,5 +21,5 @@ export BOOTSTRAP_SSH_KEYS="${key_file}.pub"
 export AGENT_PACKAGE_PATH="${package_path}/repositories/ubuntu"
 
 mkdir -p "${DESTDIR}"
-#${deployment_scripts_path}/fuel-bootstrap-image-builder/bin/fuel-bootstrap-image
+${deployment_scripts_path}/fuel-bootstrap-image-builder/bin/fuel-bootstrap-image
 chmod 755 -R "${DESTDIR}"

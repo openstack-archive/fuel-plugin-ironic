@@ -1,4 +1,4 @@
-notice('MODULAR: ironic/network.pp')
+notice('MODULAR: ironic/vips.pp')
 
 $network_scheme    = hiera('network_scheme', {})
 prepare_network_config($network_scheme)

@@ -14,29 +14,69 @@
   groups: ['primary-controller', 'controller']
   type: puppet
   required_for: [ironic-api]
-  requires: [openstack-haproxy, ironic-network]
+  requires: [openstack-haproxy, ironic-vips]
   parameters:
     puppet_manifest: puppet/manifests/haproxy.pp
     puppet_modules: puppet/modules:/etc/puppet/modules
     timeout: 3600
 
-- id: ironic-network-ovs
-  groups: ['primary-controller', 'controller']
+- id: ironicopenstack-network-compute
   type: puppet
-  required_for: [virtual_ips]
+  groups: ['ironic']
+  required_for: [ironic-physnets-conductor]
+  requires: [ironic-compute]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-network/openstack-network-compute.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
+
+- id: ironic-network-ovs
+  groups: ['primary-controller', 'controller', 'ironic']
+  type: puppet
+  required_for: [virtual_ips, ironic-vips, ironic-openstack-network-compute]
   requires: [netconfig]
   parameters:
     puppet_manifest: puppet/manifests/network-ovs.pp
     puppet_modules: puppet/modules:/etc/puppet/modules
     timeout: 3600
 
-- id: ironic-network
+- id: ironic-physnets
+  groups: ['primary-controller', 'controller']
+  type: puppet
+  required_for: [ironic-network-openstack]
+  requires: [ironic-network-ovs, openstack-network]
+  parameters:
+    puppet_manifest: puppet/manifests/network-physnets.pp
+    puppet_modules: puppet/modules:/etc/puppet/modules
+    timeout: 3600
+
+- id: ironic-openstack-network-compute
+  groups: ['ironic']
+  type: puppet
+  required_for: [ironic-physnets-conductor]
+  requires: [ironic-compute]
+  parameters:
+    puppet_manifest: /etc/puppet/modules/osnailyfacter/modular/openstack-network/openstack-network-compute.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 3600
+
+- id: ironic-physnets-conductor
+  groups: ['ironic']
+  type: puppet
+  required_for: [deploy_end]
+  requires: [ironic-openstack-network-compute]
+  parameters:
+    puppet_manifest: puppet/manifests/network-physnets-conductor.pp
+    puppet_modules: puppet/modules:/etc/puppet/modules
+    timeout: 3600
+
+- id: ironic-vips
   groups: ['primary-controller', 'controller']
   type: puppet
   required_for: [ironic-haproxy]
   requires: [openstack-controller, ironic-network-ovs]
   parameters:
-    puppet_manifest: puppet/manifests/network.pp
+    puppet_manifest: puppet/manifests/vips.pp
     puppet_modules: puppet/modules:/etc/puppet/modules
     timeout: 3600
 
@@ -96,13 +136,13 @@
   groups: ['primary-controller', 'controller']
   type: puppet
   required_for: [deploy_end, controller_remaining_tasks]
-  requires: [openstack-controller, ironic-db, ironic-network, ironic-haproxy]
+  requires: [openstack-controller, ironic-db, ironic-vips, ironic-haproxy]
   parameters:
     puppet_manifest: puppet/manifests/ironic.pp
     puppet_modules: puppet/modules:/etc/puppet/modules
     timeout: 3600
 
-- id: ironic-network-conductor
+- id: ironic-conductor-network
   groups: ['ironic']
   type: puppet
   required_for: [ironic-conductor]
@@ -115,8 +155,8 @@
 - id: ironic-conductor
   groups: ['ironic']
   type: puppet
-  required_for: [deploy_end, ironic-compute]
-  requires: [hosts, firewall, ironic-network-conductor]
+  required_for: [ironic-compute]
+  requires: [ironic-conductor-network]
   parameters:
     puppet_manifest: puppet/manifests/ironic-conductor.pp
     puppet_modules: puppet/modules:/etc/puppet/modules
@@ -125,8 +165,8 @@
 - id: ironic-compute
   groups: ['ironic']
   type: puppet
-  required_for: [deploy_end]
-  requires: [hosts, firewall, ironic-conductor]
+  required_for: [ironic-openstack-network-compute]
+  requires: [ironic-conductor]
   parameters:
     puppet_manifest: puppet/manifests/ironic-compute.pp
     puppet_modules: puppet/modules:/etc/puppet/modules

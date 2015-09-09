@@ -5,6 +5,7 @@ $nova_hash                  = hiera_hash('nova_hash', {})
 $access_hash                = hiera_hash('access',{})
 $public_vip                 = hiera('public_vip')
 $management_vip             = hiera('management_vip')
+$public_ssl_hash            = hiera('public_ssl')
 
 $network_metadata           = hiera_hash('network_metadata', {})
 $baremetal_vip              = $network_metadata['vips']['baremetal']['ipaddr']
@@ -29,8 +30,17 @@ $db_name                    = pick($ironic_hash['db_name'], 'ironic')
 $db_password                = pick($ironic_hash['password'], 'ironic')
 $database_connection        = "mysql://${db_name}:${db_password}@${db_host}/${db_name}?charset=utf8&read_timeout=60"
 
+$public_address = $public_ssl_hash['services'] ? {
+  true    => $public_ssl_hash['hostname'],
+  default => $public_vip,
+}
+$public_protocol = $public_ssl_hash['services'] ? {
+  true    => 'https',
+  default => 'http',
+}
+
 $region                     = hiera('region', 'RegionOne')
-$public_url                 = "http://${public_vip}:6385"
+$public_url                 = "${public_protocol}://${public_address}:6385"
 $admin_url                  = "http://${management_vip}:6385"
 $internal_url               = "http://${management_vip}:6385"
 
