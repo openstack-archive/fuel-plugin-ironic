@@ -38,7 +38,7 @@ $tftp_root                  = "/var/lib/ironic/tftpboot"
 class { '::ironic':
   verbose                   => $verbose,
   debug                     => $debug,
-  enabled_drivers           => ['fuel_ssh', 'fuel_ipmitool'],
+  enabled_drivers           => ['fuel_ssh', 'fuel_ipmitool', 'fake'],
   rabbit_hosts              => $rabbit_hosts,
   rabbit_port               => 5673,
   rabbit_userid             => $rabbit_hash['user'],
