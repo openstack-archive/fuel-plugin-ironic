@@ -33,6 +33,8 @@ $db_name                    = pick($ironic_hash['db_name'], 'ironic')
 $db_password                = pick($ironic_hash['password'], 'ironic')
 $database_connection        = "mysql://${db_name}:${db_password}@${db_host}/${db_name}?charset=utf8&read_timeout=60"
 
+include ::rsyslog::params
+
 $tftp_root                  = "/var/lib/ironic/tftpboot"
 
 class { '::ironic':
@@ -114,5 +116,19 @@ file { "/etc/ironic/fuel_key":
   group   => 'ironic',
   mode    => 600,
   require => Class['ironic'],
+}
+
+file { "${rsyslog::params::rsyslog_d}55-server-ironic.conf":
+  content => template("ironic/55-server-ironic.conf.erb"),
+} ~>
+service { $rsyslog::params::service_name:
+  ensure  => running,
+  enable  => true,
+}
+
+firewall { '100 rsyslog' :
+  dport   => '514',
+  proto   => 'udp',
+  action  => 'accept',
 }
 

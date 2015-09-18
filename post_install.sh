@@ -14,11 +14,13 @@ else
   echo "Key ${key_file} already exists"
 fi
 
+export MOS_VERSION="7.0"
 export BOOTSTRAP_IRONIC="yes"
 export EXTRA_DEB_REPOS="deb http://127.0.0.1:8080/plugins/fuel-plugin-ironic-1.0/repositories/ubuntu /"
 export DESTDIR="/var/www/nailgun/bootstrap/ironic"
 export BOOTSTRAP_SSH_KEYS="${key_file}.pub"
 export AGENT_PACKAGE_PATH="${package_path}/repositories/ubuntu"
+export BOOTSTRAP_FUEL_PKGS="openssh-server ntp"
 
 mkdir -p "${DESTDIR}"
 ${deployment_scripts_path}/fuel-bootstrap-image-builder/bin/fuel-bootstrap-image
