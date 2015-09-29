@@ -11,6 +11,14 @@ $baremetal_network = get_network_role_property('ironic/baremetal', 'network')
 firewallchain { 'baremetal:filter:IPv4':
   ensure => present,
 } ->
+firewall { '100 allow rsyslog':
+  chain  => 'baremetal',
+  source => $baremetal_network,
+  destination => $baremetal_ipaddr,
+  proto  => 'udp',
+  dport => '514',
+  action => 'accept',
+} ->
 firewall { '101 allow TFTP':
   chain  => 'baremetal',
   source => $baremetal_network,
@@ -19,7 +27,7 @@ firewall { '101 allow TFTP':
   dport => '69',
   action => 'accept',
 } ->
-firewall { '102 allow related':
+firewall { '900 allow related':
   chain  => 'baremetal',
   source => $baremetal_network,
   destination => $baremetal_ipaddr,

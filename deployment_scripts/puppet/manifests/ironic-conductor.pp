@@ -126,9 +126,3 @@ service { $rsyslog::params::service_name:
   enable  => true,
 }
 
-firewall { '100 rsyslog' :
-  dport   => '514',
-  proto   => 'udp',
-  action  => 'accept',
-}
-
