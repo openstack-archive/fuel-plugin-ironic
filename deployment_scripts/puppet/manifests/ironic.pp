@@ -91,15 +91,10 @@ if $ironic_hash['metadata']['enabled'] {
     action  => 'accept',
   }
 
-  nova_config {
-    'DEFAULT/scheduler_host_manager':          value => 'nova.scheduler.ironic_host_manager.IronicHostManager';
-  }
-
   include ::nova::params
   service { 'nova-scheduler':
     ensure => 'running',
     name   => $::nova::params::scheduler_service_name,
   }
-  Nova_config<| |> ~> Service['nova-scheduler']
 }
 
