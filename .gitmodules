@@ -1,3 +1,0 @@
-[submodule "deployment_scripts/puppet/modules/tftp"]
-	path = deployment_scripts/puppet/modules/tftp
-	url = https://github.com/puppetlabs/puppetlabs-tftp

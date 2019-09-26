@@ -1,4 +1,3 @@
-fuel-plugin-ironic
-============
+# This repo has moved to OpenDev
 
-Plugin description
+It can now be found at [https://opendev.org/x/fuel-plugin-ironic](https://opendev.org/x/fuel-plugin-ironic)

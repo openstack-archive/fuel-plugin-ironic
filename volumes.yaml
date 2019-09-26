@@ -1,5 +1,0 @@
-volumes: []
-volumes_roles_mapping:
-  ironic:
-    # Default role mapping
-    - {allocate_size: "all", id: "os"}
